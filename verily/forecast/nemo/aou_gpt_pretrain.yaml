@@ -1,0 +1,72 @@
+# Configuration for pretraining an AoU GPT-style model using NeMo Automodel.
+# Uses HuggingFace datasets produced by aou_data_loader.py.
+#
+# Model architecture matches experimental/foundation_model/aou/model_util.py:get_model("gpt")
+# - n_positions: 2048 (MODEL_WINDOW_SIZE)
+# - n_embd: 960 (MODEL_EMBEDDING_SIZE)
+# - n_layer: 12 (MODEL_LAYERS)
+# - n_head: 8 (MODEL_HEADS)
+
+step_scheduler:
+  global_batch_size: 16
+  local_batch_size: 2
+  ckpt_every_steps: 1000
+  num_epochs: 1
+
+dist_env:
+  backend: nccl
+  timeout_minutes: 1
+
+# Model - Using HuggingFace GPT2LMHeadModel via wrapper that ignores NeMo kwargs.
+# HuggingFace model computes loss internally with proper label shifting.
+# This matches the model used in trainer.py that successfully trains.
+model:
+  _target_: aou_dataset.py:build_hf_gpt2_model
+  vocab_size: 50258         # Adjust based on your tokenizer (len(tokenizer))
+  n_positions: 2048         # MODEL_WINDOW_SIZE
+  n_embd: 960               # MODEL_EMBEDDING_SIZE
+  n_layer: 12               # MODEL_LAYERS
+  n_head: 8                 # MODEL_HEADS
+  bos_token_id: 50256
+  eos_token_id: 50256
+
+# Dataset
+# Uses HuggingFace Dataset format produced by aou_data_loader.py
+# The dataset_path should point to the directory saved by dataset.save_to_disk()
+dataset:
+  _target_: aou_dataset.py:build_aou_dataset
+  dataset_path: "../data/datasets/cnd_v0_xxxxxxx"  # update this based on your filename
+  split: train
+  seq_len: 2048  # MODEL_WINDOW_SIZE
+  shuffle: true
+
+dataloader:
+  _target_: torch.utils.data.DataLoader
+  shuffle: true
+  collate_fn: aou_dataset.py:aou_collate_fn
+
+# Loss
+loss_fn:
+  _target_: nemo_automodel.components.loss.masked_ce.MaskedCrossEntropy
+
+# Optimizer
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: 1.0e-4
+  betas: [0.9, 0.95]
+  weight_decay: 0.1
+
+# DDP / FSDP2 / etc
+distributed:
+  _target_: nemo_automodel.components.distributed.fsdp2.FSDP2Manager
+  dp_size: null
+  tp_size: 1
+  cp_size: 1
+  sequence_parallel: false
+
+# Checkpoint configuration - training from scratch (no base model loading)
+checkpoint:
+  load_base_model: false
+  checkpoint_dir: checkpoints
+  # save_format: safetensors
+

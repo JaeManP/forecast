@@ -94,10 +94,10 @@ uv run verily/forecast/inference.py -m <path-to-saved-model> -mn gpt -d <path-to
    ```
 
    This step requires access to the AoU CDR BigQuery dataset. Set the `WORKSPACE_CDR` environment
-   variable to point to your CDR, e.g.:
+   variable to point to your CDR, e.g. for the Registered Tier dataset:
 
    ```bash
-   export WORKSPACE_CDR="your-project.your_cdr_dataset"
+   export WORKSPACE_CDR="wb-affable-acorn-7941.R2024Q3R8"
    ```
 
 2. **Tokenize** the exported data into model-ready sequences. If you sampled with `-n` in the
