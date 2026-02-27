@@ -1,0 +1,41 @@
+[project]
+name = "verily-forecast"
+version = "0.1.0"
+description = "Multimodal EHR foundation model training code"
+requires-python = ">=3.10"
+license = "BSD-3-Clause"
+license-files = ["LICEN[CS]E.*"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+maintainers = [
+  {name = "Verily Forecast team", email = "	verily-forecast@verily.com"}
+]
+readme = "README.md"
+dependencies = [
+    "datasets",
+    "numpy<2.0",
+    "pandas_gbq",
+    "polars",
+    "torch",
+    "transformers",
+    "accelerate",
+    "wandb",
+    "tokenizers",
+    "nemo_automodel",
+]
+
+[project.urls]
+Homepage = "https://github.com/verily-src/forecast"
+Repository = "https://github.com/verily-src/forecast.git"
+"Bug Tracker" = "https://github.com/verily-src/forecast/issues"
+
+[tool.setuptools.packages.find]
+include = ["verily*"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

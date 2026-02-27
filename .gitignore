@@ -1,0 +1,6 @@
+**/mock_data/datasets/*
+**/mock_data/vocab/*
+**/mock_data/train/*
+**/mock_data/test/*
+**/mock_data/model
+artifacts/*
