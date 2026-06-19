@@ -16,7 +16,7 @@ from transformers import (
     get_scheduler,
 )
 
-from verily.forecast import config, model_util
+from verily.forecast import config, guardrails, model_util
 from verily.forecast.constants import LOCAL_DIR
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -580,6 +580,11 @@ if __name__ == "__main__":
     )
 
     cli_args = parser.parse_args()
+    guardrails.validate_external_logging(
+        cli_args.enable_wandb,
+        synthetic_mode=cli_args.use_mock_data,
+    )
+
     if cli_args.post:
         config.paths.set_post(cli_args.post)
 
@@ -621,7 +626,8 @@ if __name__ == "__main__":
         args["skip_checkpoints"] = True
 
     log_with = "wandb" if cli_args.enable_wandb else None
-    accelerator = Accelerator(log_with=log_with, mixed_precision="fp16")
+    mixed_precision = guardrails.default_mixed_precision(torch.cuda.is_available())
+    accelerator = Accelerator(log_with=log_with, mixed_precision=mixed_precision)
     accelerator.print(args)
 
     # remove local model path if exists

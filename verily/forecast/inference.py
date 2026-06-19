@@ -9,9 +9,10 @@ import os
 from collections.abc import Callable
 from pathlib import Path
 
+import torch
 from accelerate import Accelerator
 
-from verily.forecast import analysis, config, model_util
+from verily.forecast import analysis, config, guardrails, model_util
 from verily.forecast.analysis import TASK_CODES
 from verily.forecast.constants import LOCAL_DIR
 
@@ -59,10 +60,17 @@ def batch_inference_wrapper(args: argparse.Namespace) -> Callable:
 
     def batch_inference():
         # Initialize accelerator
-        log_with = "wandb" if args.enable_wandb else None
-        accelerator = Accelerator(
-            mixed_precision=args.mixed_precision, log_with=log_with
+        guardrails.validate_external_logging(
+            args.enable_wandb,
+            synthetic_mode=args.synthetic_data,
         )
+        mixed_precision = (
+            args.mixed_precision
+            if args.mixed_precision is not None
+            else guardrails.default_mixed_precision(torch.cuda.is_available())
+        )
+        log_with = "wandb" if args.enable_wandb else None
+        accelerator = Accelerator(mixed_precision=mixed_precision, log_with=log_with)
 
         output_csv_path = create_output_path(args)
         print(f"Output will be saved to: {output_csv_path}")
@@ -217,9 +225,9 @@ def main():
         "--mixed-precision",
         "-mp",
         type=str,
-        default="fp16",
+        default=None,
         choices=["no", "fp16", "bf16"],
-        help="Mixed precision training mode",
+        help="Mixed precision inference mode. Defaults to fp16 on CUDA and no mixed precision otherwise.",
     )
     parser.add_argument(
         "--force-gpt2-config",
@@ -240,6 +248,11 @@ def main():
         "-ew",
         action="store_true",
         help="Enable Weights & Biases logging (requires wandb login)",
+    )
+    parser.add_argument(
+        "--synthetic-data",
+        action="store_true",
+        help="Declare that this inference run uses only synthetic or public data.",
     )
 
     parser.add_argument(
