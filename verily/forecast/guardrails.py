@@ -9,10 +9,20 @@ def is_aou_workspace_run() -> bool:
     return bool(os.getenv("WORKSPACE_CDR"))
 
 
-def validate_external_logging_disabled(enable_wandb: bool) -> None:
-    """Fail closed if external logging is requested for an AoU workspace run."""
+def validate_external_logging(enable_wandb: bool, *, synthetic_mode: bool) -> None:
+    """Allow external logging only for explicitly declared synthetic/public runs."""
 
-    if is_aou_workspace_run() and enable_wandb:
+    if not enable_wandb:
+        return
+
+    if is_aou_workspace_run() or not synthetic_mode:
         raise RuntimeError(
-            "External W&B logging is disabled for All of Us participant-level runs."
+            "External logging is permitted only for explicitly declared "
+            "synthetic-data runs outside an AoU workspace."
         )
+
+
+def default_mixed_precision(cuda_available: bool) -> str:
+    """Select a safe default Accelerator mixed-precision mode."""
+
+    return "fp16" if cuda_available else "no"

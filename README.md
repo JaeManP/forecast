@@ -115,9 +115,6 @@ uv run verily/forecast/inference.py -m <path-to-saved-model> -mn gpt -d <path-to
 
    # Multi-GPU
    uv run accelerate launch verily/forecast/trainer.py
-
-   # With Weights & Biases logging (see "Weights & Biases" section below)
-   uv run verily/forecast/trainer.py --enable-wandb
    ```
 
    Alternatively, train with NeMo by pointing the YAML config at your dataset:
@@ -159,13 +156,12 @@ walkthrough of running the model for a single patient.
 
 ## Weights & Biases
 
-[Weights & Biases](https://wandb.ai/) (W&B) integration is available for experiment tracking during
-training and inference. It is **disabled by default** and can be enabled with the `--enable-wandb`
-flag.
+[Weights & Biases](https://wandb.ai/) (W&B) integration is available only for synthetic or public-data
+experiments. It is **disabled by default** and can be enabled with the `--enable-wandb` flag when the
+run is explicitly declared synthetic.
 
-Do not use `--enable-wandb` with All of Us participant-level data. When `WORKSPACE_CDR` is set,
-Forecast fails closed if W&B logging is requested so participant-level runs stay inside the
-Researcher Workbench without external telemetry.
+Do not use `--enable-wandb` with All of Us participant-level data. Forecast fails closed unless the
+run is explicitly declared synthetic/public data and is outside an All of Us workspace.
 
 ### Setup
 
@@ -181,14 +177,15 @@ Researcher Workbench without external telemetry.
    [wandb.ai/authorize](https://wandb.ai/authorize). The key is saved to `~/.netrc` so you only need
    to do this once per machine.
 
-3. **Enable logging** by passing `--enable-wandb` to the training or inference script:
+3. **Enable logging for synthetic/mock-data runs only** by passing `--enable-wandb` with the
+   explicit synthetic-data declaration:
 
    ```bash
-   # Training with W&B
-   uv run verily/forecast/trainer.py --enable-wandb
+   # Training with W&B on mock data
+   uv run verily/forecast/trainer.py --use-mock-data --enable-wandb
 
-   # Inference with W&B
-   uv run verily/forecast/inference.py --enable-wandb -m <model-path> -mn gpt -d <dataset-path> -t T2D
+   # Inference with W&B on synthetic/public data
+   uv run verily/forecast/inference.py --synthetic-data --enable-wandb -m <model-path> -mn gpt -d <dataset-path> -t T2D
    ```
 
 Runs will appear under the `forecast` project (training) or `eval_inference` project (inference) in

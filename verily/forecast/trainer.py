@@ -580,7 +580,10 @@ if __name__ == "__main__":
     )
 
     cli_args = parser.parse_args()
-    guardrails.validate_external_logging_disabled(cli_args.enable_wandb)
+    guardrails.validate_external_logging(
+        cli_args.enable_wandb,
+        synthetic_mode=cli_args.use_mock_data,
+    )
 
     if cli_args.post:
         config.paths.set_post(cli_args.post)
@@ -623,7 +626,7 @@ if __name__ == "__main__":
         args["skip_checkpoints"] = True
 
     log_with = "wandb" if cli_args.enable_wandb else None
-    mixed_precision = "fp16" if torch.cuda.is_available() else "no"
+    mixed_precision = guardrails.default_mixed_precision(torch.cuda.is_available())
     accelerator = Accelerator(log_with=log_with, mixed_precision=mixed_precision)
     accelerator.print(args)
 
