@@ -11,7 +11,7 @@ from pathlib import Path
 
 from accelerate import Accelerator
 
-from verily.forecast import analysis, config, model_util
+from verily.forecast import analysis, config, guardrails, model_util
 from verily.forecast.analysis import TASK_CODES
 from verily.forecast.constants import LOCAL_DIR
 
@@ -249,6 +249,7 @@ def main():
         help="Compute loss during inference",
     )
     args = parser.parse_args()
+    guardrails.validate_external_logging_disabled(args.enable_wandb)
 
     print("=" * 50)
     print("Inference Configuration:")

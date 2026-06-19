@@ -75,7 +75,7 @@ directory. This allows you to test the pipeline architecture and training script
 
 ```bash
 # Tokenize the mock dataset
-uv run verily/forecast/aou_data_loader.py
+uv run verily/forecast/aou_data_loader.py --use-mock-data
 
 # Train a small model
 uv run verily/forecast/trainer.py --use-mock-data
@@ -162,6 +162,10 @@ walkthrough of running the model for a single patient.
 [Weights & Biases](https://wandb.ai/) (W&B) integration is available for experiment tracking during
 training and inference. It is **disabled by default** and can be enabled with the `--enable-wandb`
 flag.
+
+Do not use `--enable-wandb` with All of Us participant-level data. When `WORKSPACE_CDR` is set,
+Forecast fails closed if W&B logging is requested so participant-level runs stay inside the
+Researcher Workbench without external telemetry.
 
 ### Setup
 
